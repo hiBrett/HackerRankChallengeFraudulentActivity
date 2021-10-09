@@ -1,6 +1,6 @@
 ## My solution to the HackerRank challenge "Fraudulent Activity"
 
-https://www.hackerrank.com/challenges/fraudulent-activity-notifications
+Challenge Source: https://www.hackerrank.com/challenges/fraudulent-activity-notifications
 
 #### Description
 A notice is sent each time a client spends 2x more than their median spending over a number of trailing days. Find the total number of notices sent to this client. A notice is only sent when the minimum number of trailing days requirement has been met.
