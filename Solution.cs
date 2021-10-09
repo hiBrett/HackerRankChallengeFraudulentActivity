@@ -1,130 +1,96 @@
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.Collections;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Text.RegularExpressions;
-using System.Text;
-using System;
-
-class Result
+// Find the total number of notices sent to this client.
+// A notice is sent each day the client spends 2x more than their median spending over the trailing days.
+public static int activityNotifications(List<int> expenditures, int trailingDays)
 {
-    public static int activityNotifications(List<int> expenditures, int d)
+    int total = 0;
+    List<int> recentExpenditures = new List<int>();
+
+    for (int i = 0; i < expenditures.Count; i++)
     {
-        int total = 0;
-        List<int> recentExpenditures = new List<int>();
-
-        for (int i = 0; i < expenditures.Count; i++)
+        if (i >= trailingDays)
         {
-            if (i >= d)
+            if (expenditures[i] >= GetMedian(recentExpenditures) * 2)
             {
-                if (expenditures[i] >= GetMedian(recentExpenditures) * 2)
-                {
-                    total += 1;
-                }
-            }
-
-            InsertInOrder(recentExpenditures, expenditures[i]);
-            if (recentExpenditures.Count > d)
-            {
-                recentExpenditures.RemoveAt(BinarySearch(recentExpenditures, expenditures[i - d]));
+                total += 1;
             }
         }
 
-        return total;
-    }
-
-    private static float GetMedian(List<int> list)
-    {
-        if (list.Count % 2 == 0)
+        // Keeping the list sorted allows the GetMedian function to be fast.
+        InsertInOrder(recentExpenditures, expenditures[i]);
+        
+        if (recentExpenditures.Count > trailingDays)
         {
-            return (list[list.Count / 2 - 1] + list[list.Count / 2]) / 2f;
-        }
-        else
-        {
-            return list[list.Count / 2];
+            int earliestDay = i - trailingDays;
+            recentExpenditures.RemoveAt(BinarySearch(recentExpenditures, expenditures[earliestDay]));
         }
     }
 
-    private static int BinarySearch(List<int> list, int item)
+    return total;
+}
+
+// GetMedian assumes that the list is sorted.
+private static float GetMedian(List<int> list)
+{
+    if (list.Count % 2 == 0)
     {
-        int left = 0;
-        int right = list.Count - 1;
-        int position = 0;
-
-        while (left < right)
-        {
-            position = (left + right) / 2;
-            if (item > list[position])
-            {
-                left = position;
-                if (left == right - 1)
-                {
-                    left = right;
-                    position = left;
-                }
-            }
-
-            if (item < list[position])
-            {
-                right = position;
-            }
-
-            if (item == list[position])
-            {
-                left = position;
-                right = position;
-            }
-        }
-
-        return position;
+        return (list[list.Count / 2 - 1] + list[list.Count / 2]) / 2f;
     }
-
-    private static void InsertInOrder(List<int> list, int item)
+    else
     {
-        int position = BinarySearch(list, item);
-
-        if (list.Count > 0 && item > list[position])
-        {
-            position += 1;
-        }
-
-        if (position == list.Count)
-        {
-            list.Add(item);
-        }
-        else
-        {
-            list.Insert(position, item);
-        }
+        return list[list.Count / 2];
     }
 }
 
-class Solution
+// BinarySearch returns either the position of the item, or where the item should go if added.
+private static int BinarySearch(List<int> list, int item)
 {
-    public static void Main(string[] args)
+    int left = 0;
+    int right = list.Count - 1;
+    int position = 0;
+
+    while (left < right)
     {
-        TextWriter textWriter = new StreamWriter(@System.Environment.GetEnvironmentVariable("OUTPUT_PATH"), true);
+        position = (left + right) / 2;
+        if (item > list[position])
+        {
+            left = position;
+            if (left == right - 1)
+            {
+                left = right;
+                position = left;
+            }
+        }
 
-        string[] firstMultipleInput = Console.ReadLine().TrimEnd().Split(' ');
+        if (item < list[position])
+        {
+            right = position;
+        }
 
-        int n = Convert.ToInt32(firstMultipleInput[0]);
+        if (item == list[position])
+        {
+            left = position;
+            right = position;
+        }
+    }
 
-        int d = Convert.ToInt32(firstMultipleInput[1]);
+    return position;
+}
 
-        List<int> expenditure = Console.ReadLine().TrimEnd().Split(' ').ToList()
-            .Select(expenditureTemp => Convert.ToInt32(expenditureTemp)).ToList();
+private static void InsertInOrder(List<int> list, int item)
+{
+    int position = BinarySearch(list, item);
 
-        int result = Result.activityNotifications(expenditure, d);
+    if (list.Count > 0 && item > list[position])
+    {
+        position += 1;
+    }
 
-        textWriter.WriteLine(result);
-
-        textWriter.Flush();
-        textWriter.Close();
+    if (position == list.Count)
+    {
+        list.Add(item);
+    }
+    else
+    {
+        list.Insert(position, item);
     }
 }
