@@ -23,3 +23,4 @@ The space complexity is O(n) depending on the number of trailing days.
 ### Improvement Ideas
 The main perfomance cost comes from keeping the list sorted. This should be the first place to look for improving the performance.
 <br/>A possible improvement would be to have a queue to remember the index of the earliest day rather than finding it every time. This would use more space, but the space complexity would stay the same.
+<br/>The inputs could be validated, though this may not be necessary as the inputs are constrained in the problem statement.
